@@ -14,11 +14,13 @@ def proxy_download(url: str, response: Response):
         # URL se data fetch karo
         r = requests.get(url)
         
-        # Content-Type set karo plain text ke liye
-        response.headers["Content-Type"] = "text/plain; charset=utf-8"
+        # Content-Type set karo XML ke liye
+        response.headers["Content-Type"] = "application/xml; charset=utf-8"
+        
+        # Raw content lo
+        content = r.text
         
         # Agar response quotes me wrapped hai, toh unhe remove karo
-        content = r.text
         if content.startswith('"') and content.endswith('"'):
             content = content[1:-1]
         
@@ -27,8 +29,10 @@ def proxy_download(url: str, response: Response):
         content = content.replace('\\n', '\n')
         content = content.replace('\\u003C', '<')
         content = content.replace('\\u003E', '>')
+        content = content.replace('\\\\', '\\')
         
-        return content
+        # Return karo as plain text (FastAPI automatically converts to Response)
+        return Response(content=content, media_type="application/xml")
         
     except Exception as e:
         response.headers["Content-Type"] = "text/plain; charset=utf-8"
